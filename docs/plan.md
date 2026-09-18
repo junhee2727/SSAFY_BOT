@@ -43,8 +43,9 @@
 
 ### Mattermost와 저장소
 
-- 봇 토큰과 허용 사용자 ID를 설정하고, 해당 사용자의 봇 DM만 처리한다.
-- 봇 자신의 메시지와 이미 처리한 메시지를 제외한다.
+- 본인 아이디·비밀번호로 로그인하고, 로그인 응답의 사용자 ID로 ‘나와의 대화’ DM만 처리한다.
+- 인증정보는 `.env`에 설정한다. 비밀번호 인증만 사용하며 로그인 세션 토큰은 메모리에서 관리한다.
+- 프로그램의 응답과 이미 처리한 메시지를 제외한다. 사용자와 프로그램의 작성자 ID가 같으므로 발송 ID나 게시물 속성으로 구분한다.
 - 연결이 끊기면 재접속하고 마지막 처리 지점 이후 DM을 조회한다.
 - SQLite에 할 일, 메일 식별자, 요약, 처리한 DM, 발송 대기·완료 기록을 저장한다. 재시작 후에도 상태를 유지한다.
 - 네트워크 오류로 발송 결과가 불명확하면 최근 봇 게시물과 발송 식별자를 대조한 뒤 재시도해 중복을 줄인다.
@@ -119,15 +120,15 @@ x-goog-api-key: <GMS_KEY>
 
 ## 5. 전제와 기본값
 
-- Mattermost 관리자를 통해 봇 계정과 토큰을 확보한다.
+- Mattermost에서 본인 아이디·비밀번호 로그인을 사용할 수 있어야 한다. 서버가 추가 인증을 요구하면 현재 인증 코드를 사용한다.
 - PC에서 Mattermost REST API와 WebSocket에 접속할 수 있어야 한다.
 - 네이버 메일에서 IMAP을 활성화하고 필요한 인증정보를 설정한다.
-- 실제 토큰·메일 인증정보·GMS 키·뉴스레터 발신자 주소는 사용자가 PC에 설정한다.
+- 실제 Mattermost 아이디·비밀번호, 메일 인증정보, GMS 키, 뉴스레터 발신자 주소는 사용자가 PC에 설정한다.
 - PC가 켜져 있고 프로세스가 실행 중일 때 동작한다.
 - 상시 서버 배포, 자연어 할 일 해석, 기타 정보 연동은 후속 범위로 둔다.
 
 ## 6. 참고 자료
 
-- [Mattermost 봇 계정 공식 문서](https://developers.mattermost.com/integrate/reference/bot-accounts/)
+- [Mattermost 로그인 API](https://github.com/mattermost/mattermost/blob/master/api/v4/source/users.yaml)
 - [네이버 IMAP/SMTP 설정 안내](https://help.naver.com/service/30029/contents/21344?osType=COMMONOS)
 - GMS 연동 규격: 사용자가 제공한 SSAFY GMS `gemini-3.5-flash:generateContent` 호출 예시.

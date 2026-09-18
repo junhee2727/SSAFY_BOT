@@ -1,1 +1,13 @@
 .env
+.env.*
+!.env.example
+node_modules/
+dist/
+coverage/
+data/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.log
+config/*.local.json
