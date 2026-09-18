@@ -3,8 +3,10 @@ import { checkMattermostConnection, MattermostConnectionError } from './mattermo
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
-  if (args.length > 1 || (args.length === 1 && !['--check-config', '--check-mattermost'].includes(args[0]!))) {
-    console.error('사용법: npm run config:check, npm run mattermost:check 또는 npm start');
+  if (args.length > 1 || (args.length === 1 && ![
+    '--check-config', '--check-mattermost', '--check-websocket', '--check-storage',
+  ].includes(args[0]!))) {
+    console.error('사용법: npm start 또는 npm run config:check / mattermost:check / mattermost:check-websocket / storage:check');
     process.exitCode = 1;
     return;
   }
@@ -20,15 +22,28 @@ async function main(): Promise<void> {
   if (args[0] === '--check-mattermost') {
     await checkMattermostConnection(config.mattermost);
     console.info('로그인 및 나와의 대화 연결 확인 완료. 검사 세션을 로그아웃했습니다.');
-    console.info('메시지는 보내지 않았습니다. 실시간 명령 처리는 후속 구현입니다.');
+    console.info('연결 검사에서는 메시지를 보내지 않습니다. 명령 수신은 npm start로 실행하세요.');
+    return;
+  }
+  const { runMattermost, checkMattermostWebSocket } = await import('./mattermost/service.ts');
+  if (args[0] === '--check-websocket') {
+    await checkMattermostWebSocket(config.mattermost);
+    console.info('로그인 및 WebSocket 인증 확인 완료. 검사 연결과 세션을 종료했습니다.');
     return;
   }
   const { createApplication } = await import('./runtime/application.ts');
   const app = createApplication(config);
+  const controller = new AbortController();
+  const stop = () => controller.abort();
+  process.once('SIGINT', stop);
+  process.once('SIGTERM', stop);
   try {
     console.info('SQLite 초기화 완료.');
-    console.info('실행 기반 준비 완료. DM·할 일·뉴스레터 처리 모듈은 아직 연결되지 않아 초기화 후 종료합니다.');
+    if (args[0] === '--check-storage') return;
+    await runMattermost(config.mattermost, app.database, console, controller.signal);
   } finally {
+    process.removeListener('SIGINT', stop);
+    process.removeListener('SIGTERM', stop);
     app.close();
   }
 }

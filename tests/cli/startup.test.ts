@@ -21,15 +21,15 @@ test('CLI config check has no database or network side effects', (context) => {
   assert.equal(existsSync(join(directory, 'data')), false);
 });
 
-test('CLI initializes the local database and exits honestly without adapters', (context) => {
+test('storage check initializes the local database without network access', (context) => {
   const directory = temporaryDirectory(context);
   writeFileSync(join(directory, 'settings.json'), JSON.stringify(settings()));
-  const result = spawnSync(process.execPath, [entry], {
+  const result = spawnSync(process.execPath, [entry, '--check-storage'], {
     cwd: directory, encoding: 'utf8',
     env: { ...environment(), BOT_CONFIG_PATH: 'settings.json' },
   });
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /초기화 후 종료/);
+  assert.match(result.stdout, /SQLite 초기화 완료/);
   assert.equal(existsSync(join(directory, 'data', 'bot.sqlite')), true);
 });
 
